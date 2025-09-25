@@ -10,15 +10,15 @@ Il utilise n8n pour automatiser la réception, le traitement et le stockage des 
 ## 🖼️ Captures d'écran
 
 ### 1️⃣ Workflow complet sur n8n
-![Workflow complet](screenshot1.png)  
+![Workflow complet](Whatsapp Workflow.png)  
 Cette capture montre l’ensemble du workflow configuré sur n8n, incluant tous les agents et traitements automatiques pour les messages WhatsApp.
 
 ### 2️⃣ Interface de discussion sur WhatsApp
-![Interface WhatsApp](WhatsApp screenshot workflow.jpeg)  
+![Interface WhatsApp](WhatsApp-screenshot-workflow.png)  
 Exemple de conversation client : le système peut recevoir et envoyer des messages texte et vocaux, démontrant la capacité du support automatisé.
 
 ### 3️⃣ Base de données Airtable
-![Base de données Airtable](screenshot3.png)  
+![Base de données Airtable](AirtableDB.png)  
 Cette capture présente la manière dont les messages sont stockés et classés dans Airtable, avec des attributs tels que :  
 - Catégorie du message  
 - Durée du message vocal  
@@ -31,7 +31,7 @@ Cette capture présente la manière dont les messages sont stockés et classés 
 
 ## 📄 Fichier du projet
 
-Le projet inclut également le fichier **`workflow.json`**, qui contient l’exportation complète du workflow n8n.  
+Le projet inclut également le fichier **`workflow_code.json`**, qui contient l’exportation complète du workflow n8n.  
 Il peut être importé directement dans n8n pour reproduire le système tel qu’il est configuré.
 
 ---
@@ -49,6 +49,7 @@ Il peut être importé directement dans n8n pour reproduire le système tel qu�
 
 Pour toute question ou collaboration :  
 📧 *youssefbenyahia6@gmail.com*  
-🌍 Portfolio : *[Lien vers ton site/portfolio]*
+🌍 Portfolio : *https://youssef0612.github.io/Portfolio/*
+
 
 
