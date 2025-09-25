@@ -1,0 +1,788 @@
+{
+  "name": "WhatsApp Voice & Text Support Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "fieldToSplitOut": "messages",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        64,
+        -16
+      ],
+      "id": "92c1f5e6-e910-410a-919d-9319307927fc",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6960bf91-5436-4c51-8d6d-15332b00a0ac"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "128eb55d-4711-4358-b047-a3af9ed146c1",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        240,
+        -16
+      ],
+      "id": "8b2006cd-1d5a-484e-8872-63adbd14da34",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "binaryPropertyName": "audio",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        912,
+        -128
+      ],
+      "id": "de2eed2b-52c4-4ced-853f-422411143a0f",
+      "name": "Audio Transcriber",
+      "credentials": {
+        "openAiApi": {
+          "id": "UCk6KoyYrbpOP6Xp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.audio.id }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -128
+      ],
+      "id": "6acace7c-388d-4db3-8db5-c9c698ea496a",
+      "name": "Get Audio URL",
+      "webhookId": "65b8ef2c-eb8a-495b-bf0a-6455d51c0db3",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "RE2SMIpPeRuJEYGm",
+          "name": "WhatsApp account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "audio"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        -128
+      ],
+      "id": "fb53be7d-7558-4dd3-bf27-c207d9786bdd",
+      "name": "Download Audio",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "RE2SMIpPeRuJEYGm",
+          "name": "WhatsApp account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b914e348-4713-4a44-b0af-71838d4c4261",
+              "name": "transcription",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "096be6ce-5861-41b3-86c6-dfa42a61a41e",
+              "name": "whatsapp_number",
+              "value": "={{ $('WhatsApp Trigger1').item.json.contacts[0].wa_id }}",
+              "type": "string"
+            },
+            {
+              "id": "5915312f-6199-4e5f-b583-807679e7b46b",
+              "name": "customer_name",
+              "value": "={{ $('WhatsApp Trigger1').item.json.contacts[0].profile.name }}",
+              "type": "string"
+            },
+            {
+              "id": "ec69c52a-91f0-4c53-aab1-af8cde7aefc1",
+              "name": "audio_url",
+              "value": "={{ $('Get Audio URL').item.json.url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        -128
+      ],
+      "id": "b63549a1-4e57-4239-80a7-13fcc637ffcf",
+      "name": "Get Costumer Text"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -16
+      ],
+      "id": "9b47a1fc-8949-4747-8be6-b6708b8e2a25",
+      "name": "WhatsApp Trigger1",
+      "webhookId": "cad057be-593b-43dc-b90a-f949d3dcc14a",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "a9OuPZPrJ45Bdbc7",
+          "name": "WhatsApp OAuth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a support AI assistant. Your task is to analyze the transcription of a WhatsApp voice message and return a JSON object formatted for Airtable, with the following fields:\n\n- `customer_name`: \"{{ $json.customer_name }}\"\n- `whatsapp_number`: \"{{ $json.whatsapp_number }}\"\n- `transcription`: \"{{ $json.transcription }}\"\n- `audio_url`: \"{{ $json.audio_url }}\"\n\nAnalyze the transcription and infer the rest of the fields:\n\n- `category`: Choose one of [Delivery, Payment, Technical Issue, Information, Complaint, Other]\n- `tone`: Choose one of [Positive, Neutral, Negative]\n- `urgency`: Choose one of [Low, Medium, High]\n- `ticket_status`: Always return \"Open\"\n- `response_sent`: Always return false\n- `satisfaction_score`: Give a number between 1 and 5 based on the customer's satisfaction.\n- `internal_notes`: Provide a short internal note summarizing the issue or suggesting next actions.\n\nReturn only the final JSON object. Do not explain anything.\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1312,
+        -16
+      ],
+      "id": "1f69ea9a-d37c-4083-a9d7-e734c32265c4",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "UCk6KoyYrbpOP6Xp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appzSP1grEyCQMYww",
+          "mode": "list",
+          "cachedResultName": "Tickets WhatsApp",
+          "cachedResultUrl": "https://airtable.com/appzSP1grEyCQMYww"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblixIrOYDtXGxL7B",
+          "mode": "list",
+          "cachedResultName": "Support Clients",
+          "cachedResultUrl": "https://airtable.com/appzSP1grEyCQMYww/tblixIrOYDtXGxL7B"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "response_sent": "={{ $json.response_sent }}",
+            "satisfaction_score ": "={{ $json.satisfaction_score }}",
+            "customer_name": "={{ $json.customer_name }}",
+            "whatsapp_number": "={{ $json.whatsapp_number }}",
+            "transcription": "={{ $json.transcription }}",
+            "audio_url": "={{ $json.audio_url }}",
+            "category": "={{ $json.category }}",
+            "tone": "={{ $json.tone }}",
+            "urgency": "={{ $json.urgency }}",
+            "ticket_status": "={{ $json.ticket_status }}",
+            "internal_notes": "={{ $json.internal_notes }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ticket_id",
+              "displayName": "ticket_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "customer_name",
+              "displayName": "customer_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "whatsapp_number",
+              "displayName": "whatsapp_number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "transcription",
+              "displayName": "transcription",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "audio_url",
+              "displayName": "audio_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Delivery",
+                  "value": "Delivery"
+                },
+                {
+                  "name": "Payment",
+                  "value": "Payment"
+                },
+                {
+                  "name": "Technical Issue",
+                  "value": "Technical Issue"
+                },
+                {
+                  "name": "Information",
+                  "value": "Information"
+                },
+                {
+                  "name": "Complaint",
+                  "value": "Complaint"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "tone",
+              "displayName": "tone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Positive",
+                  "value": "Positive"
+                },
+                {
+                  "name": "Neutral",
+                  "value": "Neutral"
+                },
+                {
+                  "name": "Negative",
+                  "value": "Negative"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Low",
+                  "value": "Low"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "High",
+                  "value": "High"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ticket_status",
+              "displayName": "ticket_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Open",
+                  "value": "Open"
+                },
+                {
+                  "name": "In Progress",
+                  "value": "In Progress"
+                },
+                {
+                  "name": "Resolved",
+                  "value": "Resolved"
+                },
+                {
+                  "name": "Closed",
+                  "value": "Closed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "received_at",
+              "displayName": "received_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "last_updated\t",
+              "displayName": "last_updated\t",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "response_sent",
+              "displayName": "response_sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "satisfaction_score ",
+              "displayName": "satisfaction_score ",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "internal_notes",
+              "displayName": "internal_notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1872,
+        -16
+      ],
+      "id": "541792bf-b769-45d4-9d4c-07b8fc7afe87",
+      "name": "Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "dGvxFyYxCFMK7wE6",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dbbefc8e-a429-4754-bf5a-395f247dd798",
+              "name": "transcription",
+              "value": "={{ $('Split Out').item.json.text.body }}",
+              "type": "string"
+            },
+            {
+              "id": "c4193ef8-2826-4109-b3be-373d2b1fec1e",
+              "name": "customer_name",
+              "value": "={{ $('WhatsApp Trigger1').item.json.contacts[0].profile.name }}",
+              "type": "string"
+            },
+            {
+              "id": "4730fcb2-0c34-4392-8571-b132f6bfe563",
+              "name": "whatsapp_number",
+              "value": "={{ $('WhatsApp Trigger1').item.json.contacts[0].wa_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        784,
+        80
+      ],
+      "id": "876d02fb-a91e-45df-8c17-3fc12b7c3657",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "youssefbenyahia6@gmail.com",
+        "subject": "=🛎️ New Customer Request - Urgency: {{ $('Parse JSON from OpenAI').item.json.urgency }}",
+        "message": "=<b>New Customer Request Received</b><br><br>  <b>Name:</b> {{ $('Parse JSON from OpenAI').item.json.customer_name }}<br> <b>Phone Number:</b>{{ $('Parse JSON from OpenAI').item.json.whatsapp_number }}<br> <b>Urgency:</b> <span style=\"color: red;\"><b>{{ $('Parse JSON from OpenAI').item.json.urgency }}</b></span><br> <b>Category:</b> {{$('Parse JSON from OpenAI').item.json.category}}<br> <b>Tone:</b> {{$('Parse JSON from OpenAI').item.json.tone}}<br> <b>Status:</b> {{$('Parse JSON from OpenAI').item.json.ticket_status}}<br><br>  <b>Transcription:</b><br> <i>{{$('Parse JSON from OpenAI').item.json.transcription}}</i><br><br>  <b>Audio Link:</b> <a href=\"{{$('Parse JSON from OpenAI').item.json.audio_url}}\" target=\"_blank\">Listen Audio</a><br><br>  <b>Internal Notes:</b><br> {{$('Parse JSON from OpenAI').item.json.internal_notes}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2272,
+        -16
+      ],
+      "id": "e38dff05-d157-49d0-8b53-82251a1517ec",
+      "name": "Send Notification Email",
+      "webhookId": "cedfe61a-cad6-4cad-8fec-ce7336de9b0a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UIeiywNIovpCsw6h",
+          "name": "Gmail account ngrk url"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "716451661549202",
+        "recipientPhoneNumber": "21656030774",
+        "textBody": "Hi, thank you for reaching out! We've received your message and will get back to you shortly.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        -16
+      ],
+      "id": "ce034f8a-185a-4afb-8e29-843dcd21c12e",
+      "name": "Auto-Reply on WhatsApp",
+      "webhookId": "43d645cb-2f92-4d15-bc5b-086473579166",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "NvopLrwLqZ379bhx",
+          "name": "WhatsApp account 4 send msg"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Le contenu du message assistant (contenu JSON sous forme de texte brut avec ```json etc.)\nconst raw = items[0].json.message.content;\n\n// Supprimer les éventuels délimiteurs Markdown comme ```json\nconst cleaned = raw.replace(/```json|```/g, '').trim();\n\n// Convertir le texte en objet JSON réel\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (error) {\n  throw new Error('Impossible de parser le contenu JSON de OpenAI. Erreur : ' + error.message);\n}\n\n// Retourner toutes les valeurs extraites comme nouvel objet\nreturn [\n  {\n    json: {\n      customer_name: parsed.customer_name || \"Unknown\",\n      whatsapp_number: parsed.whatsapp_number || \"\",\n      transcription: parsed.transcription || \"\",\n      audio_url: parsed.audio_url || \"\",\n      category: parsed.category || \"Other\",\n      tone: parsed.tone || \"Neutral\",\n      urgency: parsed.urgency || \"Low\",\n      ticket_status: parsed.ticket_status || \"Open\",\n      response_sent: parsed.response_sent ?? false,\n      satisfaction_score: parsed.satisfaction_score || \"\",\n      internal_notes: parsed.internal_notes || \"\"\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        -16
+      ],
+      "id": "eda395fe-1305-448e-913c-5bfe39a6d7af",
+      "name": "Parse JSON from OpenAI"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get Audio URL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Audio URL": {
+      "main": [
+        [
+          {
+            "node": "Download Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Audio": {
+      "main": [
+        [
+          {
+            "node": "Audio Transcriber",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audio Transcriber": {
+      "main": [
+        [
+          {
+            "node": "Get Costumer Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Costumer Text": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Parse JSON from OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable": {
+      "main": [
+        [
+          {
+            "node": "Auto-Reply on WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Notification Email": {
+      "main": [
+        []
+      ]
+    },
+    "Auto-Reply on WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Send Notification Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse JSON from OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "46705278-94c3-4b37-b62b-dd98e731d341",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e2b36855d2fd6c4ecf19b189846ba5124fafb5cc393cfb49ad4c465067c20c3b"
+  },
+  "id": "PsziMityOQ7RA2ON",
+  "tags": []
+}
