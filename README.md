@@ -10,7 +10,7 @@ Il utilise n8n pour automatiser la réception, le traitement et le stockage des 
 ## 🖼️ Captures d'écran
 
 ### 1️⃣ Workflow complet sur n8n
-![Workflow complet](Whatsapp Workflow.png)  
+![Workflow complet](Whatsapp-Workflow.png)  
 Cette capture montre l’ensemble du workflow configuré sur n8n, incluant tous les agents et traitements automatiques pour les messages WhatsApp.
 
 ### 2️⃣ Interface de discussion sur WhatsApp
@@ -50,6 +50,7 @@ Il peut être importé directement dans n8n pour reproduire le système tel qu�
 Pour toute question ou collaboration :  
 📧 *youssefbenyahia6@gmail.com*  
 🌍 Portfolio : *https://youssef0612.github.io/Portfolio/*
+
 
 
 
